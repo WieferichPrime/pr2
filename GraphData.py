@@ -1,6 +1,7 @@
 import json
 import vk_api
 
+
 def captcha_handler(captcha):
     key = input("Enter captcha code {0}: ".format(captcha.get_url())).strip()
     return captcha.try_again(key)
@@ -24,15 +25,15 @@ class MyApi:
             auth_handler=auth_handler,
             captcha_handler=captcha_handler,
         )
-        self.id = None
-        try:
-            with open("vk_config.v2.json", "r") as read_file:
-                self.id = json.load(read_file)[login]['token']["app"+str(self.session.app_id)]["scope_"+str(self.session.scope)]['user_id']
-        except BaseException as e:
-              print(e)
 
     def get_self_id(self):
-        return self.id
+        try:
+            with open("vk_config.v2.json", "r") as read_file:
+                return json.load(read_file)[self.session.login]['token']["app" + str(self.session.app_id)][
+                    "scope_" + str(self.session.scope)]['user_id']
+        except BaseException as e:
+            print(e)
+            return None
 
     def get_user_by_id(self, id):
         try:
@@ -50,7 +51,7 @@ class MyApi:
             users = []
             for friend_id in friends['items']:
                 try:
-                    users.append((self.id, str(friend_id)))
+                    users.append((self.get_self_id(), str(friend_id)))
                     for sub_friend in vk.friends.get(user_id=friend_id)['items']:
                         users.append((str(friend_id), str(sub_friend)))
                 except vk_api.ApiError:

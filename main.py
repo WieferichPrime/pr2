@@ -14,7 +14,7 @@ def main():
     with open("data.json", "r") as read_file:
         data = json.load(read_file)
     G = nx.Graph()
-    for edge in data:
+    for edge in data[:100]:
         G.add_edge(edge[0], edge[1])
     by_lambda = dict(sorted(nx.eigenvector_centrality_numpy(G).items(), key=lambda x: x[1])[-3:])
     by_betwenness = dict(sorted(nx.betweenness_centrality(G).items(), key=lambda x: x[1])[-3:])
@@ -31,7 +31,7 @@ def main():
             color_map.append('blue')
     labels = {}
     for node in G.nodes():
-        if node == api.id:
+        if node == api.get_self_id():
             labels[node] = "Я"
         if node in by_lambda.keys() or node in by_betwenness.keys() or node in by_closeness.keys():
             labels[node] = api.get_user_by_id(node)['first_name'] + " " + api.get_user_by_id(node)['last_name']
