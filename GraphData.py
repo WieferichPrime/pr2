@@ -14,7 +14,11 @@ def auth_handler():
 
 
 class MyApi:
-    def __init__(self, login, password):
+    def __init__(self):
+        self.id = None
+        self.session = None
+
+    def init_session(self, login, password):
         self.session = vk_api.VkApi(
             login, password,
             auth_handler=auth_handler,
@@ -25,7 +29,7 @@ class MyApi:
             with open("vk_config.v2.json", "r") as read_file:
                 self.id = json.load(read_file)[login]['token']["app"+str(self.session.app_id)]["scope_"+str(self.session.scope)]['user_id']
         except BaseException as e:
-            print(e)
+              print(e)
 
     def get_self_id(self):
         return self.id
