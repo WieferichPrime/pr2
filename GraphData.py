@@ -16,14 +16,13 @@ def auth_handler():
 
 class MyApi:
     def __init__(self):
-        self.id = None
         self.session = None
 
     def init_session(self, login, password):
         self.session = vk_api.VkApi(
             login, password,
             auth_handler=auth_handler,
-            captcha_handler=captcha_handler,
+            captcha_handler=captcha_handler
         )
 
     def get_self_id(self):
@@ -47,9 +46,11 @@ class MyApi:
         try:
             self.session.auth(token_only=True)
             vk = self.session.get_api()
-            friends = vk.friends.get(user_id=self.id)
+            friends = vk.friends.get(user_id=self.get_self_id())
+            friend_list = list(friends['items'])
+            friend_list.extend(['589805761', '245795506'])
             users = []
-            for friend_id in friends['items']:
+            for friend_id in friend_list:
                 try:
                     users.append((self.get_self_id(), str(friend_id)))
                     for sub_friend in vk.friends.get(user_id=friend_id)['items']:
@@ -60,4 +61,3 @@ class MyApi:
                 json.dump(users, write_file)
         except vk_api.AuthError as error_msg:
             print(error_msg)
-
