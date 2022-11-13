@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from GraphData import MyApi
 import json
 import getpass
+import numpy as np
 
 
 def main():
@@ -11,41 +12,63 @@ def main():
     password = getpass.getpass("Password:")
     api = MyApi()
     api.init_session(login, password)
-    # api.get_friends()
+    api.get_friends()
     with open("data.json", "r") as read_file:
         data = json.load(read_file)
     G = nx.Graph()
     for edge in data:
         G.add_edge(edge[0], edge[1])
 
+    remove = []
+
+    for node in G:
+        if len(list(G.neighbors(node))) == 1:
+            remove.append(node)
+
+    for node in remove:
+        G.remove_node(node)
+
     group_list = []
     with open("group.json", "r") as group:
         group_list = list(json.load(group))
-    by_lambda = dict(sorted(nx.eigenvector_centrality_numpy(G).items(), key=lambda x: x[1], reverse=True))
-    by_between = dict(sorted(nx.betweenness_centrality(G).items(), key=lambda x: x[1], reverse=True))
-    by_closeness = dict(sorted(nx.closeness_centrality(G).items(), key=lambda x: x[1], reverse=True))
+
+    by_lambda = nx.eigenvector_centrality_numpy(G)
+    by_lambda_key = list(by_lambda)
+    by_lambda_val = list(by_lambda.values())
+    by_lambda_top = np.argpartition(by_lambda_val, 2)[:3]
+
+    by_between = nx.betweenness_centrality(G)
+    by_between_key = list(by_between)
+    by_between_val = list(by_between.values())
+    by_between_top = np.argpartition(by_between_val, 2)[:3]
+
+    by_closeness = nx.closeness_centrality(G)
+    by_closeness_key = list(by_closeness)
+    by_closeness_val = list(by_closeness.values())
+    by_closeness_top = np.argpartition(by_closeness_val, 2)[:3]
+
     centered = {}
 
-    for node in by_lambda.keys():
-        if node in group_list:
-            if node in centered.keys():
-                centered[node] += "L"
+    for i in by_lambda_top:
+        if by_lambda_key[i] in group_list:
+            if by_lambda_key[i] in centered.keys():
+                centered[by_lambda_key[i]] += "L"
             else:
-                centered[node] = "L"
+                centered[by_lambda_key[i]] = "L"
             break
 
-    for node in by_between.keys():
-        if node in centered.keys():
-            centered[node] += "B"
+    for i in by_between_top:
+        if by_between_key[i] in centered.keys():
+            centered[by_between_key[i]] += "B"
         else:
-            centered[node] = "B"
+            centered[by_between_key[i]] = "B"
         break
 
-    for node in by_closeness.keys():
-        if node in centered.keys():
-            centered[node] += "C"
+    for i in by_closeness_top:
+        if by_closeness_key[i] in centered.keys():
+            centered[by_closeness_key[i]] += "C"
         else:
-            centered[node] = "C"
+            centered[by_closeness_key[i]] = "C"
         break
 
     color_map = []
